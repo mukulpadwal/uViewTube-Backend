@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { validateEmail } from "../util/index.js";
+import validateEmail from "../util/validateEmail.js";
 import bcrypt from "bcrypt";
 
 const userSchema = new Schema(
@@ -63,4 +63,4 @@ userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-export default User = model("User", userSchema);
+export const User = model("User", userSchema);
