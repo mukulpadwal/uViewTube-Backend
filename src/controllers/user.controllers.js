@@ -186,4 +186,22 @@ const logoutUser = asyncHandler(async (req, res) => {
     });
 });
 
-export { healthCheck, registerUser, loginUser, logoutUser };
+// Controller 5 : Refresh User Tokens
+const refreshUserTokens = asyncHandler(async (req, res) => {
+  const { accessToken, refreshToken } = await generateTokens(req?.user._id);
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, constants.COOKIE_OPTIONS)
+    .cookie("refreshToken", refreshToken, constants.COOKIE_OPTIONS)
+    .json({
+      success: true,
+      data: {
+        refreshToken: refreshToken,
+        accessToken: accessToken,
+      },
+      message: "Tokens refreshed successfully...",
+    });
+});
+
+export { healthCheck, registerUser, loginUser, logoutUser, refreshUserTokens };

@@ -4,6 +4,7 @@ import {
   registerUser,
   loginUser,
   logoutUser,
+  refreshUserTokens,
 } from "../controllers/user.controllers.js";
 import { uploadImage } from "../middlewares/multer.middleware.js";
 import verifyJWT from "../middlewares/auth.middleware.js";
@@ -26,7 +27,10 @@ router.route("/register-user").post(
 // Route 3 : login user
 router.route("/login").post(loginUser);
 
-// Router 4 : Logout user
+// Route 4 : Logout user
 router.route("/logout").post(verifyJWT, logoutUser);
+
+// Route 5 : refresh-tokens
+router.route("/refresh-tokens").get(verifyJWT, refreshUserTokens);
 
 export default router;

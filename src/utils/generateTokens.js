@@ -7,9 +7,13 @@ async function generateTokens(userId) {
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
-    await User.findByIdAndUpdate(userId, {
-      refreshToken,
-    });
+    await User.findByIdAndUpdate(
+      userId,
+      {
+        refreshToken,
+      },
+      { new: true }
+    );
 
     return { accessToken, refreshToken };
   } catch (error) {
