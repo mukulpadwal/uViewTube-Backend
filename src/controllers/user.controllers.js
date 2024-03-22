@@ -163,4 +163,27 @@ const loginUser = asyncHandler(async (req, res) => {
     });
 });
 
-export { healthCheck, registerUser, loginUser };
+// Controller 4 : Logout User
+const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req?.user._id,
+    {
+      $unset: {
+        refreshToken: 1,
+      },
+    },
+    { new: true }
+  );
+
+  return res
+    .status(200)
+    .clearCookie("accessToken", constants.COOKIE_OPTIONS)
+    .clearCookie("refreshToken", constants.COOKIE_OPTIONS)
+    .json({
+      success: true,
+      data: {},
+      message: "User logged out successfully...",
+    });
+});
+
+export { healthCheck, registerUser, loginUser, logoutUser };
