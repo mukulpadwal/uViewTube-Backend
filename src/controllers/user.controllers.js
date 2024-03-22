@@ -101,15 +101,16 @@ const loginUser = asyncHandler(async (req, res) => {
   // Step 1 : Take the data from the frontend
   const { username, email, password } = req.body;
 
+  // 1.1 We need any one from username or password
+  if (!username && !email) {
+    throw new ApiError(400, "Please provide either username or email...");
+  }
+
   // 1.1 -> Validate the data
-  if (
-    [username, email, password].some(
-      (field) => !field || field?.trim().length === 0
-    )
-  ) {
+  if (!password) {
     // If here means that any field is missing
     // Throw an error
-    throw new ApiError(400, "Please fill all the fields...");
+    throw new ApiError(400, "Please enter password...");
   }
 
   // Step 2 : Let's check if user exists or not
