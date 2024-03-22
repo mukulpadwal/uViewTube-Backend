@@ -48,7 +48,50 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Avatar is required...");
   }
 
-  // await uploadOnCloudinary(username, avatar);
+  // 3.2 Let's try and upload the images on cloudinary
+  const avatarCloudLink = await uploadOnCloudinary(username, avatar);
+  let coverImageCloudLink;
+
+  if (coverImage) {
+    coverImageCloudLink = await uploadOnCloudinary(username, coverImage);
+  }
+
+  // 3.3 Check if the avatar is uploaded or not
+  if (!avatarCloudLink) {
+    throw new ApiError(
+      500,
+      "Error while uploading avatar. Please try again later..."
+    );
+  }
+
+  // Step 4 : Let's save the data to the database now
+  const user = await User.create({
+    username,
+    email,
+    fullName,
+    avatar: avatarCloudLink.url,
+    coverImage: coverImageCloudLink?.url ?? "",
+    password,
+  });
+
+  // 4.1 Check if the user is successfully saved or not
+  if (Object.keys(user).length === 0) {
+    throw new ApiError(
+      500,
+      "Error while saving data to database. Please try again later..."
+    );
+  }
+
+  // Filter out data to send
+  const createdUser = await User.findById(user?._id).select(
+    "-password -refreshToken"
+  );
+
+  return res.status(201).json({
+    success: true,
+    data: createdUser,
+    message: "User successfully registered!!",
+  });
 });
 
 export { healthCheck, registerUser };
