@@ -1,6 +1,8 @@
 import { Schema, model } from "mongoose";
-import validateEmail from "../util/validateEmail.js";
+import validateEmail from "../utils/validateEmail.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import conf from "../conf/conf.js";
 
 const userSchema = new Schema(
   {
@@ -59,8 +61,37 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+// isPasswordCorrect(password) : Checks if the password entered by user is correct or not
+// returns : true/false
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
+};
+
+// generateAccessToken() : generates jwt token and returns it
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
+    {
+      _id: this._id,
+      username: this.username,
+      email: this.email,
+      fullName: this.fullName,
+    },
+    conf.accessTokenSecret,
+    { expiresIn: conf.accessTokenExpiry }
+  );
+};
+
+// generateRefreshToken() : generates jwt token and returns it
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign(
+    {
+      _id: this._id,
+    },
+    conf.refreshTokenSecret,
+    {
+      expiresIn: conf.refreshTokenExpiry,
+    }
+  );
 };
 
 export const User = model("User", userSchema);

@@ -4,6 +4,10 @@ const conf = {
   cloudinaryCloudName: String(process.env.CLOUDINARY_CLOUD_NAME),
   cloudinaryApiKey: String(process.env.CLOUDINARY_API_KEY),
   cloudinaryApiSecret: String(process.env.CLOUDINARY_API_SECRET),
+  accessTokenSecret: String(process.env.JWT_ACCESS_TOKEN_SECRET),
+  accessTokenExpiry: String(process.env.JWT_ACCESS_TOKEN_EXPIRY),
+  refreshTokenSecret: String(process.env.JWT_REFRESH_TOKEN_SECRET),
+  refreshTokenExpiry: String(process.env.JWT_REFRESH_TOKEN_EXPIRY),
 };
 
 export default conf;

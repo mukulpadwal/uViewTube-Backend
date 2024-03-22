@@ -1,7 +1,9 @@
-import asyncHandler from "../util/asyncHandler.js";
-import ApiError from "../util/apiError.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/apiError.js";
 import { User } from "../models/users.model.js";
-import { uploadOnCloudinary } from "../util/cloudinary.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import generateTokens from "../utils/generateTokens.js";
+import constants from "../constants.js";
 
 // Controller 1 : health-check
 const healthCheck = asyncHandler(async (req, res) => {
@@ -94,4 +96,70 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 });
 
-export { healthCheck, registerUser };
+// Controller 3 : Login User
+const loginUser = asyncHandler(async (req, res) => {
+  // Step 1 : Take the data from the frontend
+  const { username, email, password } = req.body;
+
+  // 1.1 -> Validate the data
+  if (
+    [username, email, password].some(
+      (field) => !field || field?.trim().length === 0
+    )
+  ) {
+    // If here means that any field is missing
+    // Throw an error
+    throw new ApiError(400, "Please fill all the fields...");
+  }
+
+  // Step 2 : Let's check if user exists or not
+  const user = await User.findOne({
+    $or: [{ username }, { email }],
+  });
+
+  if (Object.keys(user).length === 0) {
+    throw new ApiError(
+      400,
+      "No user exists with the provided email or username..."
+    );
+  }
+
+  // 2.1 -> Let's check the password
+  const isPasswordCorrect = await user.isPasswordCorrect(password);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Incorrect Password...");
+  }
+
+  // Step 3 : Now the credentials are correct let's generate tokens
+  const { accessToken, refreshToken } = await generateTokens(user?._id);
+
+  if (!accessToken || !refreshToken) {
+    throw new ApiError(
+      500,
+      "Error generating tokens. Please try again later..."
+    );
+  }
+
+  // Step 4 : Let's Send the tokens as cookies
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, constants.COOKIE_OPTIONS)
+    .cookie("refreshToken", refreshToken, constants.COOKIE_OPTIONS)
+    .json({
+      success: true,
+      data: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        avatar: user.avatar,
+        coverImage: user.coverImage,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      },
+      message: "User logged in successfully...",
+    });
+});
+
+export { healthCheck, registerUser, loginUser };

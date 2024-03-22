@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { healthCheck, registerUser } from "../controllers/user.controllers.js";
+import { healthCheck, registerUser, loginUser } from "../controllers/user.controllers.js";
 import { uploadImage } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 
-// Route 1 : helath-check Route
+// Route 1 : health-check Route
 // DESC : checks the working of route
 router.route("/health-check").get(healthCheck);
 
@@ -16,5 +16,8 @@ router.route("/register-user").post(
   ]),
   registerUser
 );
+
+// Route 3 : login user Route
+router.route("/login").post(loginUser);
 
 export default router;
