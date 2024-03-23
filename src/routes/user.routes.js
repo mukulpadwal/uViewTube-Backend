@@ -31,6 +31,9 @@ router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 
 // Route 5 : refresh-tokens
-router.route("/refresh-tokens").get(verifyJWT, refreshUserTokens);
+router.route("/refresh-tokens").get(refreshUserTokens);
+
+// Route 6 : get-user 
+// router.route("/get-user").get(verifyJWT, getCurrentUser);
 
 export default router;

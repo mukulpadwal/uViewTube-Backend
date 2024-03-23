@@ -4,6 +4,8 @@ import { User } from "../models/users.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import generateTokens from "../utils/generateTokens.js";
 import constants from "../constants.js";
+import jwt from "jsonwebtoken";
+import conf from "../conf/conf.js";
 
 // Controller 1 : health-check
 const healthCheck = asyncHandler(async (req, res) => {
@@ -188,7 +190,31 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 // Controller 5 : Refresh User Tokens
 const refreshUserTokens = asyncHandler(async (req, res) => {
-  const { accessToken, refreshToken } = await generateTokens(req?.user._id);
+  // Step 1 : fetch refresh token from frontend
+  const currentRefreshToken =
+    req?.cookies?.refreshToken || req?.body?.refreshToken;
+
+  if (!currentRefreshToken) {
+    throw new ApiError(401, "No refresh token found...");
+  }
+
+  // Step 2 : We need to verify the refresh token in our database and the one we get from user
+  const decodedTokenInformation = jwt.verify(
+    currentRefreshToken,
+    conf.refreshTokenSecret
+  );
+
+  const user = await User.findById(decodedTokenInformation?._id);
+
+  if (Object.keys(user).length === 0) {
+    throw new ApiError(401, "Invalid User...");
+  }
+
+  if (currentRefreshToken !== user?.refreshToken) {
+    throw new ApiError(401, "Refresh token Expired...");
+  }
+
+  const { accessToken, refreshToken } = await generateTokens(user._id);
 
   return res
     .status(200)
