@@ -230,4 +230,59 @@ const refreshUserTokens = asyncHandler(async (req, res) => {
     });
 });
 
-export { healthCheck, registerUser, loginUser, logoutUser, refreshUserTokens };
+// Controller 6 : Get Current User
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    data: req?.user,
+    message: "User details fetched successfully...",
+  });
+});
+
+// Controller 7 : Change User Password
+const changeUserPassword = asyncHandler(async (req, res) => {
+  // Step 1 : Take input from user
+  const { currentPassword, newPassword, confirmNewPassword } = req.body;
+
+  // 1.1 -> Verify the data
+  if (
+    [currentPassword, newPassword, confirmNewPassword].some(
+      (field) => !field || field.trim().length === 0
+    )
+  ) {
+    throw new ApiError(400, "Please provide all the fields...");
+  }
+
+  // Step 2 : Verify the current password with the password in the database
+  const user = await User.findById(req?.user._id);
+  const isPasswordCorrect = await user.isPasswordCorrect(currentPassword);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Incorrect Password...");
+  }
+
+  // 2.1 -> verify the newPasswords match
+  if (newPassword !== confirmNewPassword) {
+    throw new ApiError(400, "Passwords mismatch...");
+  }
+
+  // Step 3 : Update the password in the database
+  user.password = newPassword;
+  user.save();
+
+  res.status(201).json({
+    success: true,
+    data: {},
+    message: "Password updated successfully...",
+  });
+});
+
+export {
+  healthCheck,
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshUserTokens,
+  getCurrentUser,
+  changeUserPassword,
+};
