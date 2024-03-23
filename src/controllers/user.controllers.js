@@ -1,7 +1,10 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import { User } from "../models/users.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadOnCloudinary,
+  deleteImageOnCloudinary,
+} from "../utils/cloudinary.js";
 import generateTokens from "../utils/generateTokens.js";
 import constants from "../constants.js";
 import jwt from "jsonwebtoken";
@@ -74,7 +77,9 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     fullName,
     avatar: avatarCloudLink.url,
+    avatarPublicId: avatarCloudLink.public_id,
     coverImage: coverImageCloudLink?.url ?? "",
+    coverImagePublicId: coverImageCloudLink?.public_id ?? "",
     password,
   });
 
@@ -268,12 +273,139 @@ const changeUserPassword = asyncHandler(async (req, res) => {
 
   // Step 3 : Update the password in the database
   user.password = newPassword;
-  user.save();
+  user.save({ validateBeforeSave: false });
 
   res.status(201).json({
     success: true,
     data: {},
     message: "Password updated successfully...",
+  });
+});
+
+// Controller 8 : Update User Details
+const updateUserDetails = asyncHandler(async (req, res) => {
+  // Step 1 : Fetch the data that the user wants to update
+  const { username, email, fullName } = req.body;
+
+  // 1.1 -> Validate the data
+  if (
+    [username, email, fullName].some(
+      (field) => !field || field?.trim().length === 0
+    )
+  ) {
+    throw new ApiError(400, "Please provide data for all the fields...");
+  }
+
+  // 1.2 -> Let's verify that a user with same username or email does not exist in the database
+  const user = await User.find({
+    $or: [{ username }, { email }],
+  });
+
+  if (user.length !== 0) {
+    throw new ApiError(400, "username or email is already taken...");
+  }
+
+  // Step 2 : Update the data in the database
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        username: username,
+        email: email,
+        fullName: fullName,
+      },
+    },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  if (Object.keys(updatedUser).length === 0) {
+    throw new ApiError(500, "Could not update user details...");
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: updatedUser,
+    message: "User details updated successfully...",
+  });
+});
+
+// Controller 9 : Update User avatar
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const avatar = req?.file;
+
+  if (!avatar) {
+    throw new ApiError(400, "Avatar is required...");
+  }
+
+  const avatarCloudLink = await uploadOnCloudinary(req?.user?.username, [
+    avatar,
+  ]);
+
+  if (!avatarCloudLink) {
+    throw new ApiError(
+      500,
+      "Error while uploading avatar. Please try again later..."
+    );
+  }
+
+  // Write helper function to delete the old file from cloudinary
+  await deleteImageOnCloudinary(req?.user?.avatarPublicId);
+
+  const user = await User.findByIdAndUpdate(
+    req?.user?._id,
+    {
+      $set: {
+        avatar: avatarCloudLink.url,
+        avatarPublicId: avatarCloudLink.public_id,
+      },
+    },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  res.status(200).json({
+    success: true,
+    data: user,
+    message: "Avatar updated successfully...",
+  });
+});
+
+// Controller 10 : Update User coverImage
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const coverImage = req?.file;
+
+  if (!coverImage) {
+    throw new ApiError(400, "Avatar is required...");
+  }
+
+  const coverImageCloudLink = await uploadOnCloudinary(req?.user?.username, [
+    coverImage,
+  ]);
+
+  if (!coverImage) {
+    throw new ApiError(
+      500,
+      "Error while uploading avatar. Please try again later..."
+    );
+  }
+
+  // Write helper function to delete the old file from cloudinary
+  await deleteImageOnCloudinary(req?.user?.coverImagePublicId);
+
+  const user = await User.findByIdAndUpdate(
+    req?.user?._id,
+    {
+      $set: {
+        coverImage: coverImageCloudLink.url,
+        coverImagePublicId: coverImageCloudLink.public_id,
+      },
+    },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  res.status(200).json({
+    success: true,
+    data: user,
+    message: "Cover Image updated successfully...",
   });
 });
 
@@ -285,4 +417,7 @@ export {
   refreshUserTokens,
   getCurrentUser,
   changeUserPassword,
+  updateUserDetails,
+  updateUserAvatar,
+  updateUserCoverImage,
 };

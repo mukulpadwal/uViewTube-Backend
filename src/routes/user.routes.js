@@ -7,8 +7,11 @@ import {
   refreshUserTokens,
   getCurrentUser,
   changeUserPassword,
+  updateUserDetails,
+  updateUserAvatar,
+  updateUserCoverImage,
 } from "../controllers/user.controllers.js";
-import { uploadImage } from "../middlewares/multer.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 import verifyJWT from "../middlewares/auth.middleware.js";
 
 const router = Router();
@@ -19,7 +22,7 @@ router.route("/health-check").get(healthCheck);
 
 // Route 2 : register-user
 router.route("/register-user").post(
-  uploadImage.fields([
+  upload.fields([
     { name: "avatar", maxCount: 1 },
     { name: "coverImage", maxCount: 1 },
   ]),
@@ -40,5 +43,18 @@ router.route("/current-user").get(verifyJWT, getCurrentUser);
 
 // Route 7 : change-password
 router.route("/change-password").post(verifyJWT, changeUserPassword);
+
+// Route 8 : update-user-details
+router.route("/update-user-details").patch(verifyJWT, updateUserDetails);
+
+// Route 9 : update-user-avatar
+router
+  .route("/update-user-avatar")
+  .patch(verifyJWT, upload.single("avatar"), updateUserAvatar);
+
+// Route 10 : update-user-coverimage
+router
+  .route("/update-user-coverimage")
+  .patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
 
 export default router;
