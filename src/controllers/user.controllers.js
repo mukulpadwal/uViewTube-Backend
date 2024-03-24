@@ -285,24 +285,22 @@ const changeUserPassword = asyncHandler(async (req, res) => {
 // Controller 8 : Update User Details
 const updateUserDetails = asyncHandler(async (req, res) => {
   // Step 1 : Fetch the data that the user wants to update
-  const { username, email, fullName } = req.body;
+  const { email, fullName } = req.body;
 
   // 1.1 -> Validate the data
-  if (
-    [username, email, fullName].some(
-      (field) => !field || field?.trim().length === 0
-    )
-  ) {
+  if ([email, fullName].some((field) => !field || field?.trim().length === 0)) {
     throw new ApiError(400, "Please provide data for all the fields...");
   }
 
   // 1.2 -> Let's verify that a user with same username or email does not exist in the database
-  const user = await User.find({
-    $or: [{ username }, { email }],
+  const user = await User.findOne({
+    email,
   });
 
-  if (user.length !== 0) {
-    throw new ApiError(400, "username or email is already taken...");
+  console.log(user);
+
+  if (user) {
+    throw new ApiError(400, "email is already taken...");
   }
 
   // Step 2 : Update the data in the database
@@ -310,7 +308,6 @@ const updateUserDetails = asyncHandler(async (req, res) => {
     req.user._id,
     {
       $set: {
-        username: username,
         email: email,
         fullName: fullName,
       },
@@ -409,6 +406,93 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
   });
 });
 
+// Controller 11 : Get User Channel Profile
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  if (!username?.trim()) {
+    throw new ApiError(400, "username is missing");
+  }
+
+  const channel = await User.aggregate([
+    // Pipeline 1 : Find the user from the User Model
+    {
+      $match: {
+        username: username,
+      },
+    },
+
+    // Pipeline 2 : Now that we have user let's calculate the subscribers count of this user
+    // How many people has subscribed to username
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+
+    // Pipeline 3 : Current User Subscribed Count
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+
+    // Pipeline 4 : Add the fields
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers",
+        },
+
+        subscribedToCount: {
+          $size: "$subscribedTo",
+        },
+
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+
+    // Pipeline 5 : Choosing fields to project
+    {
+      $project: {
+        username: 1,
+        email: 1,
+        fullName: 1,
+        avatar: 1,
+        coverImage: 1,
+        subscribersCount: 1,
+        subscribedToCount: 1,
+        isSubscribed: 1,
+      },
+    },
+  ]);
+
+  if (channel.length === 0) {
+    throw new ApiError(400, "No data found...");
+  }
+
+  return res.status(200).json({
+    message: true,
+    data: channel,
+    messahe: "User Channel Profile fetched successfully...",
+  });
+});
+
+// Controller 12 : Get User Watch History
+const getWatchHistory = asyncHandler(async (req, res) => {});
+
 export {
   healthCheck,
   registerUser,
@@ -420,4 +504,6 @@ export {
   updateUserDetails,
   updateUserAvatar,
   updateUserCoverImage,
+  getUserChannelProfile,
+  getWatchHistory,
 };
