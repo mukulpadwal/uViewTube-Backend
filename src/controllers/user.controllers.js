@@ -9,6 +9,7 @@ import generateTokens from "../utils/generateTokens.js";
 import constants from "../constants.js";
 import jwt from "jsonwebtoken";
 import conf from "../conf/conf.js";
+import mongoose from "mongoose";
 
 // Controller 1 : health-check
 const healthCheck = asyncHandler(async (req, res) => {
@@ -491,7 +492,62 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 });
 
 // Controller 12 : Get User Watch History
-const getWatchHistory = asyncHandler(async (req, res) => {});
+const getWatchHistory = asyncHandler(async (req, res) => {
+  const watchHistory = await User.aggregate([
+    // 1st Pipeline: Let's find the user from id
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(String(req.user._id)),
+      },
+    },
+
+    // 2nd Pipeline: Let's join the videos table to get watchhistory details
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          // Pipeline 2.1 : lookup for users
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                // Pipeline 2.1.1 : Filter the fields to show from user details
+                {
+                  $project: {
+                    username: 1,
+                    fullName: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+
+          // Pipeline 2.2 :
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return res.status(200).json({
+    success: true,
+    data: watchHistory[0].watchHistory,
+    message: "Watch history fetched successfully...",
+  });
+});
 
 export {
   healthCheck,
