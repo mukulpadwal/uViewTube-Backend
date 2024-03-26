@@ -6,9 +6,15 @@ const videoSchema = new Schema(
       type: String,
       required: true,
     },
+    videoFilePublicId: {
+      type: String,
+    },
     thumbnail: {
       type: String,
       required: true,
+    },
+    thumbnailPublicId: {
+      type: String,
     },
     owner: {
       type: Schema.Types.ObjectId,
@@ -38,4 +44,4 @@ const videoSchema = new Schema(
   { timestamps: true }
 );
 
-export default Video = model("Video", videoSchema);
+export const Video = model("Video", videoSchema);
