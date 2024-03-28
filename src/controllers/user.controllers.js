@@ -11,14 +11,7 @@ import jwt from "jsonwebtoken";
 import conf from "../conf/conf.js";
 import mongoose from "mongoose";
 
-// Controller 1 : health-check
-const healthCheck = asyncHandler(async (req, res) => {
-  return res
-    .status(200)
-    .json({ Success: true, Message: "This route is working correctly..." });
-});
-
-// Controller 2 : Register a new user
+// Controller 1 : Register a new user
 const registerUser = asyncHandler(async (req, res) => {
   // STEP 1 : Let's take the data from the user
   const { username, email, fullName, password } = req.body;
@@ -104,7 +97,7 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 });
 
-// Controller 3 : Login User
+// Controller 2 : Login User
 const loginUser = asyncHandler(async (req, res) => {
   // Step 1 : Take the data from the frontend
   const { username, email, password } = req.body;
@@ -126,7 +119,7 @@ const loginUser = asyncHandler(async (req, res) => {
     $or: [{ username }, { email }],
   });
 
-  if (Object.keys(user).length === 0) {
+  if (!user || Object.keys(user)?.length === 0) {
     throw new ApiError(
       400,
       "No user exists with the provided email or username..."
@@ -171,7 +164,7 @@ const loginUser = asyncHandler(async (req, res) => {
     });
 });
 
-// Controller 4 : Logout User
+// Controller 3 : Logout User
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req?.user._id,
@@ -194,7 +187,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     });
 });
 
-// Controller 5 : Refresh User Tokens
+// Controller 4 : Refresh User Tokens
 const refreshUserTokens = asyncHandler(async (req, res) => {
   // Step 1 : fetch refresh token from frontend
   const currentRefreshToken =
@@ -236,7 +229,7 @@ const refreshUserTokens = asyncHandler(async (req, res) => {
     });
 });
 
-// Controller 6 : Get Current User
+// Controller 5 : Get Current User
 const getCurrentUser = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
@@ -245,7 +238,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   });
 });
 
-// Controller 7 : Change User Password
+// Controller 6 : Change User Password
 const changeUserPassword = asyncHandler(async (req, res) => {
   // Step 1 : Take input from user
   const { currentPassword, newPassword, confirmNewPassword } = req.body;
@@ -283,7 +276,7 @@ const changeUserPassword = asyncHandler(async (req, res) => {
   });
 });
 
-// Controller 8 : Update User Details
+// Controller 7 : Update User Details
 const updateUserDetails = asyncHandler(async (req, res) => {
   // Step 1 : Fetch the data that the user wants to update
   const { email, fullName } = req.body;
@@ -327,7 +320,7 @@ const updateUserDetails = asyncHandler(async (req, res) => {
   });
 });
 
-// Controller 9 : Update User avatar
+// Controller 8 : Update User avatar
 const updateUserAvatar = asyncHandler(async (req, res) => {
   const avatar = req?.file;
 
@@ -367,7 +360,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   });
 });
 
-// Controller 10 : Update User coverImage
+// Controller 9 : Update User coverImage
 const updateUserCoverImage = asyncHandler(async (req, res) => {
   const coverImage = req?.file;
 
@@ -407,7 +400,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
   });
 });
 
-// Controller 11 : Get User Channel Profile
+// Controller 10 : Get User Channel Profile
 const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
@@ -491,7 +484,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   });
 });
 
-// Controller 12 : Get User Watch History
+// Controller 11 : Get User Watch History
 const getWatchHistory = asyncHandler(async (req, res) => {
   const watchHistory = await User.aggregate([
     // 1st Pipeline: Let's find the user from id
@@ -550,7 +543,6 @@ const getWatchHistory = asyncHandler(async (req, res) => {
 });
 
 export {
-  healthCheck,
   registerUser,
   loginUser,
   logoutUser,
