@@ -41,4 +41,17 @@ const deleteImageOnCloudinary = async (publicId) => {
   }
 };
 
-export { uploadOnCloudinary, deleteImageOnCloudinary };
+// Deleting the Video file
+const deleteVideoOnCloudinary = async (publicId) => {
+  try {
+    const response = await cloudinary.api.delete_resources([publicId], {
+      type: "upload",
+      resource_type: "video",
+    });
+    return response;
+  } catch (error) {
+    console.log(`Error while deleting file : ERROR : ${error.message}`);
+  }
+};
+
+export { uploadOnCloudinary, deleteImageOnCloudinary, deleteVideoOnCloudinary };
