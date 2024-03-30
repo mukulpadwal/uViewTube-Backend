@@ -11,6 +11,19 @@ import mongoose from "mongoose";
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
   //TODO: get all videos based on query, sort, pagination
+
+  const videos = await Video.aggregate([
+    // Pipeline 1 : Let's find all the videos from the particular user
+    {
+      $match: {
+        owner: new mongoose.Types.ObjectId(String(userId)),
+      },
+    },
+    // Pipeline : limit the videos to send
+    { $limit: Number(limit) },
+  ]);
+
+  console.log(videos);
 });
 
 // Controller 2 : Publish a Video

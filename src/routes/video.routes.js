@@ -13,7 +13,8 @@ import {
 
 const router = Router();
 
-// router.route("/get-all-videos");
+// Router 1 : get all videos
+router.route("/all").get(getAllVideos);
 
 // Router 2 : publish video
 router.route("/publish").post(
