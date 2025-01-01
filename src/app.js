@@ -1,21 +1,67 @@
 import express from "express";
+import logger from "../logger.js";
+import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
 const app = express();
+const morganFormat = ":method :url :status :response-time ms";
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(
+  morgan(morganFormat, {
+    stream: {
+      write: (message) => {
+        /**
+         * An object representing the log details of an HTTP request.
+         *
+         * @property {string} method - The HTTP method used for the request.
+         * @property {string} url - The URL of the request.
+         * @property {string} status - The HTTP status code of the response.
+         * @property {string} responseTime - The time taken to respond to the request.
+         */
+        const logObject = {
+          method: message.split(" ")[0],
+          url: message.split(" ")[1],
+          status: message.split(" ")[2],
+          responseTime: message.split(" ")[3],
+        };
+        logger.info(JSON.stringify(logObject));
+      },
+    },
+  })
+);
+
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
+  })
+);
+
+app.use(
+  express.json({
+    limit: "16kb",
+  })
+);
+
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "16kb",
+  })
+);
+
 app.use(cookieParser());
 
-// Routing
-import { healthCheck } from "./controllers/healthcheck.controller.js";
-import userRouter from "./routes/user.routes.js";
-import videoRouter from "./routes/video.routes.js";
+app.use(express.static("public"));
 
-app.get("/api/v1/health-check", healthCheck);
-app.use("/api/v1/users", userRouter);
-app.use("/api/v1/videos", videoRouter);
+// Routes
+import healthcheckRouter from "./routes/healthcheck.routes.js";
+import usersRouter from "./routes/users.routes.js";
+import commentsRouter from "./routes/comments.routes.js";
 
-export default app;
+app.use("/api/v1/healthcheck", healthcheckRouter);
+app.use("/api/v1/users", usersRouter);
+app.use("/api/v1/comments", commentsRouter);
+
+export { app };

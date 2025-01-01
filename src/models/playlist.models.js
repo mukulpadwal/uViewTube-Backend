@@ -1,11 +1,10 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const playlistSchema = new Schema(
   {
     name: {
       type: String,
       required: true,
-      trim: true,
     },
     description: {
       type: String,
@@ -25,4 +24,4 @@ const playlistSchema = new Schema(
   { timestamps: true }
 );
 
-export default Playlist = model("Playlist", playlistSchema);
+export const Playlist = mongoose.model("Playlist", playlistSchema);

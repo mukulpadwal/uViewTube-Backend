@@ -1,57 +1,47 @@
 import { v2 as cloudinary } from "cloudinary";
-import conf from "../conf/conf.js";
 import fs from "fs";
 
 cloudinary.config({
-  cloud_name: conf.cloudinaryCloudName,
-  api_key: conf.cloudinaryApiKey,
-  api_secret: conf.cloudinaryApiSecret,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Uploading the file
-const uploadOnCloudinary = async (username, file) => {
+async function uploadToCloudinary(localFilePath) {
   try {
-    const { fieldname, filename, path } = file[0];
-
-    const response = await cloudinary.uploader.upload(String(path), {
+    if (!localFilePath) {
+      return null;
+    }
+    
+    const uploadResult = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
-      public_id: `${username}/${fieldname}/${filename}`,
     });
 
-    fs.unlinkSync(file[0].path);
+    fs.unlinkSync(localFilePath);
 
-    return response;
+    return uploadResult;
   } catch (error) {
-    console.log(`Error while uploading file : ERROR : ${error.message}`);
-    fs.unlinkSync(file[0].path);
-    process.exit(1);
+    console.error(
+      "Error while uploading your file to cloudinary :: ERROR :: ",
+      error
+    );
+    fs.unlinkSync(localFilePath);
+    return null;
   }
-};
+}
 
-// Deleting the file
-const deleteImageOnCloudinary = async (publicId) => {
+async function deleteFromCloudinary(publicID) {
   try {
-    const response = await cloudinary.api.delete_resources([publicId], {
-      type: "upload",
-      resource_type: "image",
-    });
-    return response;
-  } catch (error) {
-    console.log(`Error while deleting file : ERROR : ${error.message}`);
-  }
-};
+    const destroyedResult = await cloudinary.uploader.destroy(publicID);
 
-// Deleting the Video file
-const deleteVideoOnCloudinary = async (publicId) => {
-  try {
-    const response = await cloudinary.api.delete_resources([publicId], {
-      type: "upload",
-      resource_type: "video",
-    });
-    return response;
+    return destroyedResult;
   } catch (error) {
-    console.log(`Error while deleting file : ERROR : ${error.message}`);
+    console.error(
+      "Error while deleting your file to cloudinary :: ERROR :: ",
+      error
+    );
+    return null;
   }
-};
+}
 
-export { uploadOnCloudinary, deleteImageOnCloudinary, deleteVideoOnCloudinary };
+export { uploadToCloudinary, deleteFromCloudinary };

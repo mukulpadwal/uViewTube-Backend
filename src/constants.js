@@ -1,9 +1,6 @@
-const constants = {
-  DB_NAME: "uViewTube",
-  COOKIE_OPTIONS: {
-    httpOnly: true,
-    secure: true,
-  },
-};
+export const DB_NAME = "uViewTube";
 
-export default constants;
+export const OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_EVN === "production",
+};
