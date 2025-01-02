@@ -1,11 +1,12 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { APIResponse } from "../utils/apiResponse.js";
-import { APIError } from "../utils/apiError.js";
-import { User } from "../models/user.models.js";
+
 import {
+  APIResponse,
+  APIError,
   deleteFromCloudinary,
   uploadToCloudinary,
-} from "../utils/cloudinary.js";
+  asyncHandler,
+} from "../utils/index.js";
+import { User } from "../models/user.models.js";
 import jwt from "jsonwebtoken";
 import { OPTIONS } from "../constants.js";
 import mongoose from "mongoose";
@@ -122,9 +123,9 @@ const registerUser = asyncHandler(async (req, res) => {
     );
 
     if (!user) {
-      await deleteFromCloudinary(uploadedAvatar.public_id);
+      await deleteFromCloudinary(uploadedAvatar.public_id, "image");
       if (uploadedCoverImage?.url) {
-        await deleteFromCloudinary(uploadedCoverImage.public_id);
+        await deleteFromCloudinary(uploadedCoverImage.public_id, "image");
       }
       return res
         .status(500)
@@ -141,9 +142,9 @@ const registerUser = asyncHandler(async (req, res) => {
       .status(201)
       .json(new APIResponse(201, user, "User registered successfully..."));
   } catch (error) {
-    await deleteFromCloudinary(uploadedAvatar.public_id);
+    await deleteFromCloudinary(uploadedAvatar.public_id, "image");
     if (uploadedCoverImage?.url) {
-      await deleteFromCloudinary(uploadedCoverImage.public_id);
+      await deleteFromCloudinary(uploadedCoverImage.public_id, "image");
     }
     return res
       .status(500)
@@ -386,7 +387,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     throw new APIError(500, "Something went wrong while uploading avatar...");
   }
 
-  await deleteFromCloudinary(req.user.avatarPublicID);
+  await deleteFromCloudinary(req.user.avatarPublicID, "image");
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
@@ -417,7 +418,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     throw new APIError(500, "Something went wrong while uploading avatar...");
   }
 
-  await deleteFromCloudinary(req.user.coverImagePublicID);
+  await deleteFromCloudinary(req.user.coverImagePublicID, "image");
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
@@ -508,7 +509,9 @@ const getWatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
     {
       $match: {
-        _id: mongoose.Types.ObjectId.createFromHexString(req?.user?._id.toString()),
+        _id: mongoose.Types.ObjectId.createFromHexString(
+          req?.user?._id.toString()
+        ),
       },
     },
     {

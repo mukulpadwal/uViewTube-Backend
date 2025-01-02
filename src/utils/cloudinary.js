@@ -12,7 +12,7 @@ async function uploadToCloudinary(localFilePath) {
     if (!localFilePath) {
       return null;
     }
-    
+
     const uploadResult = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
     });
@@ -30,9 +30,11 @@ async function uploadToCloudinary(localFilePath) {
   }
 }
 
-async function deleteFromCloudinary(publicID) {
+async function deleteFromCloudinary(publicId, resourceType) {
   try {
-    const destroyedResult = await cloudinary.uploader.destroy(publicID);
+    const destroyedResult = await cloudinary.uploader.destroy(publicId, {
+      resource_type: resourceType,
+    });
 
     return destroyedResult;
   } catch (error) {

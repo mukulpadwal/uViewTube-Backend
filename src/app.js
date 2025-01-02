@@ -59,9 +59,13 @@ app.use(express.static("public"));
 import healthcheckRouter from "./routes/healthcheck.routes.js";
 import usersRouter from "./routes/users.routes.js";
 import commentsRouter from "./routes/comments.routes.js";
+import likesRouter from "./routes/likes.routes.js";
+import videosRouter from "./routes/videos.routes.js";
 
 app.use("/api/v1/healthcheck", healthcheckRouter);
 app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/comments", commentsRouter);
+app.use("/api/v1/likes", likesRouter);
+app.use("/api/v1/videos", videosRouter);
 
 export { app };
