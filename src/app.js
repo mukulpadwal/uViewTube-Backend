@@ -61,11 +61,13 @@ import usersRouter from "./routes/users.routes.js";
 import commentsRouter from "./routes/comments.routes.js";
 import likesRouter from "./routes/likes.routes.js";
 import videosRouter from "./routes/videos.routes.js";
+import tweetsRouter from "./routes/tweets.routes.js";
 
 app.use("/api/v1/healthcheck", healthcheckRouter);
 app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/comments", commentsRouter);
 app.use("/api/v1/likes", likesRouter);
 app.use("/api/v1/videos", videosRouter);
+app.use("/api/v1/tweets", tweetsRouter);
 
 export { app };
