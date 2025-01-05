@@ -61,22 +61,24 @@ Welcome to the uViewTube Backend repository! This project serves as the backend 
 
 ### Installation
 
-1. Clone the repository:
+1. Fork the repository. If you are not familiar with how to do this, follow the instructions [here](https://docs.github.com/en/get-started/quickstart/fork-a-repo).
+
+2. Clone the repository:
     ```sh
-    git clone https://github.com/mukulpadwal/uViewTube-Backend.git
+    git clone https://github.com/<username>/uViewTube-Backend.git
     cd uViewTube-Backend
     ```
 
-2. Install dependencies:
+3. Install dependencies:
     ```sh
     npm install
     ```
 
-3. Create a `.env` file based on the `.env.example` provided and fill in the necessary environment variables.
+4. Create a `.env` file based on the `.env.example` provided and fill in the necessary environment variables.
 
-4. Start the server:
+5. Start the server:
     ```sh
-    npm start
+    npm run dev
     ```
 
 ## Environment Variables
