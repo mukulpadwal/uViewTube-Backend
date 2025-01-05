@@ -64,6 +64,7 @@ import videosRouter from "./routes/videos.routes.js";
 import subscriptionsRouter from "./routes/subscriptions.routes.js";
 import tweetsRouter from "./routes/tweets.routes.js";
 import playlistsRouter from "./routes/playlists.routes.js";
+import dashboardRouter from "./routes/dashboard.routes.js";
 
 app.use("/api/v1/healthcheck", healthcheckRouter);
 app.use("/api/v1/users", usersRouter);
@@ -73,5 +74,6 @@ app.use("/api/v1/videos", videosRouter);
 app.use("/api/v1/subscriptions", subscriptionsRouter);
 app.use("/api/v1/tweets", tweetsRouter);
 app.use("/api/v1/playlists", playlistsRouter);
+app.use("/api/v1/dashboard", dashboardRouter);
 
 export { app };
